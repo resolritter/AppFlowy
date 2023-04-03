@@ -35,7 +35,7 @@ RUN source ~/.cargo/env && \
     rustup default stable
 
 # Install Flutter
-RUN sudo pacman -S --noconfirm tar gtk3
+RUN sudo pacman -S --noconfirm git tar gtk3
 RUN curl -sSfL \
       --output flutter.tar.xz \
       https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.3.10-stable.tar.xz && \

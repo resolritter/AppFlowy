@@ -9,7 +9,7 @@ on:
 
 jobs:
   build-frontend-app:
-    if: ${{ github.base_ref == 'docker' || github.head_ref == null || github.ref == 'refs/heads/docker' }}
+    if: ${{ github.head_ref == null }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
