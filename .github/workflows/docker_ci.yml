@@ -33,7 +33,7 @@ jobs:
         if: ${{ github.ref != 'refs/heads/docker' }}
         with:
           path: /var/lib/docker/volumes
-            key: docker-volumes
+          key: docker-volumes
 
       - name: List cached Docker volumes
         run: ls /var/lib/docker/volumes || true
