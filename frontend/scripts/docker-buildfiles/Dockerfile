@@ -17,10 +17,14 @@ USER $user
 WORKDIR /home/$user
 
 # Install yay
-RUN sudo pacman -S --needed --noconfirm git
-RUN git clone --depth 1 https://aur.archlinux.org/yay.git && \
-    cd yay && \
-    makepkg -sri --needed --noconfirm
+RUN sudo pacman -S --needed --noconfirm curl tar
+RUN curl -sSfL \
+    --output yay.tar.gz \
+    https://github.com/Jguer/yay/releases/download/v12.0.2/yay_12.0.2_x86_64.tar.gz && \
+  tar -xf yay.tar.gz && \
+  mv yay_12.0.2_x86_64/yay /bin && \
+  rm -rf yay_12.0.2_x86_64 && \
+  yay --version
 
 # Install Rust
 RUN yay -S --noconfirm curl base-devel openssl clang cmake ninja pkg-config xdg-user-dirs
@@ -42,7 +46,7 @@ RUN flutter doctor
 RUN dart pub global activate protoc_plugin
 
 # Build the AppFlowy app
-RUN sudo pacman -S --noconfirm libkeybinder3 sqlite
+RUN sudo pacman -S --noconfirm git libkeybinder3 sqlite
 RUN git clone --depth 1 https://github.com/AppFlowy-IO/appflowy.git
 RUN cd appflowy/frontend && \
     source ~/.cargo/env && \
