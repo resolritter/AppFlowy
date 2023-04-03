@@ -1,0 +1,23 @@
+name: Docker-CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-frontend-app:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker
+        uses: docker-practice/actions-setup-docker@fd7ecdac7caf8e2c541a48c9bcc280aae59a8461 # master
+
+      - name: Build the app
+        working-directory: frontend/scripts/docker-buildfiles
+        run: docker-compose build --progress=plain
