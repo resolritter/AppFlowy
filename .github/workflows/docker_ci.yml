@@ -8,8 +8,8 @@ on:
     types: [opened, edited]
 
 jobs:
-  if: ${{ github.base_ref == 'docker' || github.head_ref == null || github.ref == 'refs/heads/docker' }}
   build-frontend-app:
+    if: ${{ github.base_ref == 'docker' || github.head_ref == null || github.ref == 'refs/heads/docker' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
