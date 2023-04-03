@@ -27,7 +27,8 @@ jobs:
           path: /var/lib/docker/volumes
           key: docker-volumes
 
-      # We don't need this step on main because it's redundant with the step above
+      # We don't need this step on main because it's redundant with the previous
+      # caching step
       - name: Restore the Docker volumes' cache
         uses: actions/cache/restore@v3
         if: ${{ github.ref != 'refs/heads/docker' }}
@@ -36,7 +37,7 @@ jobs:
           key: docker-volumes
 
       - name: List cached Docker volumes
-        run: ls /var/lib/docker/volumes || true
+        run: sudo ls /var/lib/docker/volumes || true
 
       - name: Build the app
         working-directory: frontend/scripts/docker-buildfiles
