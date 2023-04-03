@@ -27,6 +27,7 @@ jobs:
         if: ${{ github.ref == 'refs/heads/docker' }}
         with:
           path: /var/lib/docker/volumes
+          key: docker-volumes
 
       # We don't need this step on main because it's redundant with the step above
       - name: Restore the Docker volumes' cache
@@ -34,6 +35,10 @@ jobs:
         if: ${{ github.ref != 'refs/heads/docker' }}
         with:
           path: /var/lib/docker/volumes
+            key: docker-volumes
+
+      - name: List cached Docker volumes
+        run: ls /var/lib/docker/volumes || true
 
       - name: Build the app
         working-directory: frontend/scripts/docker-buildfiles
