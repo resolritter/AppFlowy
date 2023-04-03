@@ -3,14 +3,12 @@ name: Docker-CI
 on:
   push:
     branches:
-      - main
       - docker
   pull_request:
-    branches:
-      - main
-      - docker
+    types: [opened, edited]
 
 jobs:
+  if: ${{ github.base_ref == 'docker' || github.head_ref == null || github.ref == 'refs/heads/docker' }}
   build-frontend-app:
     runs-on: ubuntu-latest
     steps:
