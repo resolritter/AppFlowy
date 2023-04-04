@@ -74,6 +74,7 @@ FROM archlinux/archlinux
 
 # Upgrade the system
 RUN pacman -Syyu --noconfirm
+RUN pacman -S --needed --noconfirm sudo
 
 # Install runtime dependencies
 RUN pacman -S --noconfirm xdg-user-dirs gtk3 libkeybinder3 && \
