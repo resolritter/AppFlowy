@@ -35,6 +35,7 @@ jobs:
           key: docker-cargo-cache_${{ runner.os }}
 
       - name: Build the app
+        id: build
         run: |
           mkdir -p .docker-cargo-cache
           cd frontend/scripts/docker-buildfiles
@@ -43,8 +44,9 @@ jobs:
           cat Dockerfile
           docker-compose build --progress=plain
 
-      - name: Retrieve the cache
-        continue-on-failure: true
+      - name: Try to retrieve the cache
+        if: ${{ steps.build.outcome == 'success' }}
+        continue-on-error: true
         run: |
           docker container create --name tmp appflowy/appflowy:latest
           docker container cp tmp:/cargo-cache .docker-cargo-cache
