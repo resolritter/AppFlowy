@@ -48,8 +48,8 @@ jobs:
         if: ${{ steps.build.outcome == 'success' }}
         continue-on-error: true
         run: |
-          docker container create --name tmp appflowy/appflowy:latest
-          docker container cp tmp:/cargo-cache .docker-cargo-cache
+          tmp="$(docker container create --name tmp appflowy/appflowy:latest)"
+          docker container cp "$tmp":/cargo-cache .docker-cargo-cache
 
       - name: Save the cache
         if: ${{ github.ref == 'refs/heads/docker' }}

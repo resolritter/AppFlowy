@@ -35,8 +35,6 @@ RUN source ~/.cargo/env && \
     rustup default stable
 
 # Install Flutter
-RUN echo 'Server = https://ftp.jaist.ac.jp/pub/Linux/ArchLinux/$repo/os/$arch' | sudo tee /etc/pacman.d/mirrorlist
-RUN sudo pacman -Syyu --noconfirm
 RUN sudo pacman -S --noconfirm git tar gtk3
 RUN curl -sSfL \
       --output flutter.tar.xz \
@@ -47,9 +45,6 @@ RUN flutter config --enable-linux-desktop
 RUN flutter doctor
 RUN dart pub global activate protoc_plugin
 
-# Set up dependencies for AppFlowy
-RUN sudo pacman -S --noconfirm git libkeybinder3 sqlite
-
 # Set up Cargo cache
 ARG cargo_cache=/cargo-cache
 #CI-CACHE-INJECT-MARKER: Do not remove this line! It's used for injecting the cache in CI
@@ -57,7 +52,8 @@ RUN sudo mkdir -p "$cargo_cache/target" && \
     sudo chown $user: "$cargo_cache/target"
 ENV CARGO_TARGET_DIR="$cargo_cache/target"
 
-# Set up AppFlowy's build tools
+# Set up build dependencies for AppFlowy
+RUN sudo pacman -S --noconfirm git libkeybinder3 sqlite
 RUN source ~/.cargo/env && cargo install --force cargo-make duckscript_cli
 
 # Build AppFlowy
