@@ -1,5 +1,3 @@
-# syntax=docker/dockerfile:1.2
-
 #================
 # BUILDER
 #================
@@ -54,22 +52,19 @@ RUN sudo pacman -S --noconfirm git libkeybinder3 sqlite
 
 # Set up Cargo cache
 ARG cargo_cache=/cargo-cache
-# DOCKERFILE-CI-COPY-LINE: Do NOT remove this line! It's used for injecting the cache in CI
-RUN --mount=type=cache,target=$cargo_cache \
-    sudo mkdir -p "$cargo_cache/target" && \
+#CI-CACHE-INJECT-MARKER: Do not remove this line! It's used for injecting the cache in CI
+RUN sudo mkdir -p "$cargo_cache/target" && \
     sudo chown $user: "$cargo_cache/target"
 ENV CARGO_TARGET_DIR="$cargo_cache/target"
 
 # Set up AppFlowy's build tools
-RUN --mount=type=cache,target=$cargo_cache \
-  source ~/.cargo/env && \
-  cargo install --force cargo-make duckscript_cli
+RUN source ~/.cargo/env && cargo install --force cargo-make duckscript_cli
 
 # Build AppFlowy
 COPY . /appflowy
 RUN sudo chown -R $user: /appflowy
 WORKDIR /appflowy
-RUN --mount=type=cache,target=$cargo_cache \
+RUN cd frontend && \
     source ~/.cargo/env && \
     cargo make appflowy-flutter-deps-tools && \
     cargo make -p production-linux-x86_64 appflowy-linux
@@ -98,6 +93,7 @@ USER $user
 
 # Set up the AppFlowy app
 WORKDIR /home/$user
+#CI-CACHE-INJECT-MARKER: Do not remove this line! It's used for retrieving the cache in CI
 COPY --from=builder /appflowy/frontend/appflowy_flutter/build/linux/x64/release/bundle .
 RUN xdg-user-dirs-update
 
