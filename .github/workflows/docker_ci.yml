@@ -22,7 +22,9 @@ jobs:
         run: |
           mkdir /docker-data
           chmod 666 /docker-data
+          mkdir -p /etc/docker
           echo '{ "data-root": "/docker-data" }' > /etc/docker/daemon.json
+          chmod 666 /etc/docker/daemon.json
 
       # Only cache the Docker volumes on main, not on pull requests, to avoid
       # overriding the cache with artifacts from unmerged code
