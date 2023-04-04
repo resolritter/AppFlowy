@@ -9,7 +9,7 @@ on:
 
 jobs:
   build-frontend-app:
-    if: ${{ github.head_ref == null }}
+    if: ${{ github.base_ref == 'docker' || github.ref == 'refs/heads/docker' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
@@ -18,26 +18,32 @@ jobs:
       - name: Set up Docker
         uses: docker-practice/actions-setup-docker@fd7ecdac7caf8e2c541a48c9bcc280aae59a8461 # master
 
+      - name: Set Docker's data-root
+        run: |
+          mkdir /docker-data
+          chmod 666 /docker-data
+          echo '{ "data-root": "/docker-data" }' > /etc/docker/daemon.json
+
       # Only cache the Docker volumes on main, not on pull requests, to avoid
       # overriding the cache with artifacts from unmerged code
-      - name: Cache the Docker volumes' cache on main
+      - name: Cache Docker's data
         uses: actions/cache@v3
         if: ${{ github.ref == 'refs/heads/docker' }}
         with:
-          path: /var/lib/docker/volumes
-          key: docker-volumes
+          path: /docker-data
+          key: docker-data
 
       # We don't need this step on main because it's redundant with the previous
       # caching step
-      - name: Restore the Docker volumes' cache
+      - name: Restore Docker's cache
         uses: actions/cache/restore@v3
         if: ${{ github.ref != 'refs/heads/docker' }}
         with:
-          path: /var/lib/docker/volumes
-          key: docker-volumes
+          path: /docker-data
+          key: docker-data
 
       - name: List cached Docker volumes
-        run: sudo ls /var/lib/docker/volumes || true
+        run: sudo ls /docker-data || true
 
       - name: Build the app
         working-directory: frontend/scripts/docker-buildfiles
