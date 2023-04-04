@@ -27,7 +27,8 @@ jobs:
             docker-layer-cache-
             layer-docker-layer-cache-
 
-      - uses: actions/cache/restore@v3
+      - name: Restore the cache
+        uses: actions/cache/restore@v3
         id: restore-cache
         with:
           path: .docker-cargo-cache
