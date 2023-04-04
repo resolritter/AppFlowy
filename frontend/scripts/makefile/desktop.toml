@@ -175,16 +175,24 @@ private = true
 script = [
   """
     echo "🚀 🚀 🚀  AppFlowy-Core build success"
-    dart_ffi_dir= set ${CARGO_MAKE_WORKSPACE_WORKING_DIRECTORY}/appflowy_flutter/linux/flutter/dart_ffi
+
+    dart_ffi_dir = set ${CARGO_MAKE_WORKSPACE_WORKING_DIRECTORY}/appflowy_flutter/linux/flutter/dart_ffi
     lib = set lib${LIB_NAME}.${LIB_EXT}
+    cargo_target_dir = get_env CARGO_TARGET_DIR
 
     # copy dll
-    cp ${CARGO_MAKE_WORKSPACE_WORKING_DIRECTORY}/rust-lib/target/${RUST_COMPILE_TARGET}/${BUILD_FLAG}/${lib} \
-    ${dart_ffi_dir}/${lib}
+    if is_empty ${cargo_target_dir}
+      dartffi_lib = set ${CARGO_MAKE_WORKSPACE_WORKING_DIRECTORY}/rust-lib/target/${RUST_COMPILE_TARGET}/${BUILD_FLAG}/${lib}
+    else
+      dartffi_lib = set ${cargo_target_dir}/${RUST_COMPILE_TARGET}/${BUILD_FLAG}/${lib}
+    end
+    cp ${dartffi_lib} ${dart_ffi_dir}/${lib}
 
     # copy binding.h
-    cp ${CARGO_MAKE_WORKSPACE_WORKING_DIRECTORY}/rust-lib/${CARGO_MAKE_CRATE_NAME}/binding.h \
-    ${dart_ffi_dir}/binding.h
+    echo ${CARGO_MAKE_WORKSPACE_WORKING_DIRECTORY}/rust-lib/${CARGO_MAKE_CRATE_NAME}/binding.h
+    cp \
+      ${CARGO_MAKE_WORKSPACE_WORKING_DIRECTORY}/rust-lib/${CARGO_MAKE_CRATE_NAME}/binding.h \
+      ${dart_ffi_dir}/binding.h
   """,
 ]
 script_runner = "@duckscript"

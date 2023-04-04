@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1.2
+
 #================
 # BUILDER
 #================
@@ -35,6 +37,8 @@ RUN source ~/.cargo/env && \
     rustup default stable
 
 # Install Flutter
+RUN echo 'Server = https://ftp.jaist.ac.jp/pub/Linux/ArchLinux/$repo/os/$arch' | sudo tee /etc/pacman.d/mirrorlist
+RUN sudo pacman -Syyu --noconfirm
 RUN sudo pacman -S --noconfirm git tar gtk3
 RUN curl -sSfL \
       --output flutter.tar.xz \
@@ -45,12 +49,28 @@ RUN flutter config --enable-linux-desktop
 RUN flutter doctor
 RUN dart pub global activate protoc_plugin
 
-# Build the AppFlowy app
+# Set up dependencies for AppFlowy
 RUN sudo pacman -S --noconfirm git libkeybinder3 sqlite
-COPY . /appflowy-frontend
-RUN cd /appflowy-frontend && \
+
+# Set up Cargo cache
+ARG cargo_cache=/cargo-cache
+# DOCKERFILE-CI-COPY-LINE: Do NOT remove this line! It's used for injecting the cache in CI
+RUN --mount=type=cache,target=$cargo_cache \
+    sudo mkdir -p "$cargo_cache/target" && \
+    sudo chown $user: "$cargo_cache/target"
+ENV CARGO_TARGET_DIR="$cargo_cache/target"
+
+# Set up AppFlowy's build tools
+RUN --mount=type=cache,target=$cargo_cache \
+  source ~/.cargo/env && \
+  cargo install --force cargo-make duckscript_cli
+
+# Build AppFlowy
+COPY . /appflowy
+RUN sudo chown -R $user: /appflowy
+WORKDIR /appflowy
+RUN --mount=type=cache,target=$cargo_cache \
     source ~/.cargo/env && \
-    cargo install --force cargo-make duckscript_cli && \
     cargo make appflowy-flutter-deps-tools && \
     cargo make -p production-linux-x86_64 appflowy-linux
 
@@ -78,7 +98,7 @@ USER $user
 
 # Set up the AppFlowy app
 WORKDIR /home/$user
-COPY --from=builder /home/makepkg/appflowy/frontend/appflowy_flutter/build/linux/x64/release/bundle .
+COPY --from=builder /appflowy/frontend/appflowy_flutter/build/linux/x64/release/bundle .
 RUN xdg-user-dirs-update
 
 CMD ["./AppFlowy"]
