@@ -18,26 +18,15 @@ jobs:
       - name: Set up Docker
         uses: docker-practice/actions-setup-docker@fd7ecdac7caf8e2c541a48c9bcc280aae59a8461 # master
 
-      # Only cache the Docker volumes on main, not on pull requests, to avoid
-      # overriding the cache with artifacts from unmerged code
-      - name: Cache Docker's data
-        uses: actions/cache@v3
-        if: ${{ github.ref == 'refs/heads/docker' }}
+      - name: Cache Docker layers
+        uses: jpribyl/action-docker-layer-caching@616dc4b3a7ba46d074f885cc681ca9db6309f376 # master
+        continue-on-error: true
+        # workaround for https://github.com/satackey/action-docker-layer-caching/issues/169#issuecomment-1217408538
         with:
-          path: /var/lib/docker/volumes
-          key: docker-volumes
-
-      # We don't need this step on main because it's redundant with the previous
-      # caching step
-      - name: Restore Docker's cache
-        uses: actions/cache/restore@v3
-        if: ${{ github.ref != 'refs/heads/docker' }}
-        with:
-          path: /var/lib/docker/volumes
-          key: docker-volumes
-
-      - name: List cached Docker volumes
-        run: sudo ls /var/lib/docker/volumes || true
+          key: docker-layer-cache-{hash}
+          restore-keys: |
+            docker-layer-cache-
+            layer-docker-layer-cache-
 
       - name: Build the app
         working-directory: frontend/scripts/docker-buildfiles

@@ -47,8 +47,8 @@ RUN dart pub global activate protoc_plugin
 
 # Build the AppFlowy app
 RUN sudo pacman -S --noconfirm git libkeybinder3 sqlite
-RUN git clone --depth 1 https://github.com/AppFlowy-IO/appflowy.git
-RUN cd appflowy/frontend && \
+COPY . /appflowy-frontend
+RUN cd /appflowy-frontend && \
     source ~/.cargo/env && \
     cargo install --force cargo-make duckscript_cli && \
     cargo make appflowy-flutter-deps-tools && \
