@@ -18,7 +18,7 @@ jobs:
         uses: docker-practice/actions-setup-docker@fd7ecdac7caf8e2c541a48c9bcc280aae59a8461 # master
 
       - name: Cache Docker layers
-        uses: jpribyl/action-docker-layer-caching@616dc4b3a7ba46d074f885cc681ca9db6309f376 # master
+        uses: jpribyl/action-docker-layer-caching@376818fbbe127d8e2d5528666f38a67e588c7449 # main-release
         continue-on-error: true
         # workaround for https://github.com/satackey/action-docker-layer-caching/issues/169#issuecomment-1217408538
         with:
@@ -39,8 +39,8 @@ jobs:
         run: |
           mkdir -p .docker-cargo-cache
           cd frontend/scripts/docker-buildfiles
-          sed -i -e 's|^#CI-CACHE-INJECT-MARKER:|COPY .docker-cargo-cache $cargo_cache|' Dockerfile
-          sed -i -e 's|^#CI-CACHE-RETRIEVE-MARKER:|COPY --from=builder $cargo_cache $cargo_cache|' Dockerfile
+          sed -i -e 's|^#CI-CACHE-INJECT-MARKER:.*|COPY .docker-cargo-cache $cargo_cache|' Dockerfile
+          sed -i -e 's|^#CI-CACHE-RETRIEVE-MARKER:.*|COPY --from=builder $cargo_cache $cargo_cache|' Dockerfile
           cat Dockerfile
           docker-compose build --progress=plain
 
