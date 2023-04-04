@@ -93,7 +93,7 @@ USER $user
 
 # Set up the AppFlowy app
 WORKDIR /home/$user
-#CI-CACHE-INJECT-MARKER: Do not remove this line! It's used for retrieving the cache in CI
+#CI-CACHE-RETRIEVE-MARKER: Do not remove this line! It's used for retrieving the cache in CI
 COPY --from=builder /appflowy/frontend/appflowy_flutter/build/linux/x64/release/bundle .
 RUN xdg-user-dirs-update
 

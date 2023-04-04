@@ -2,14 +2,13 @@ name: Docker-CI
 
 on:
   push:
-    branches:
-      - docker
+    branches: [docker]
   pull_request:
-    types: [opened, edited]
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+    branches: [docker]
 
 jobs:
   build-frontend-app:
-    if: ${{ github.base_ref == 'docker' || github.ref == 'refs/heads/docker' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
@@ -28,6 +27,30 @@ jobs:
             docker-layer-cache-
             layer-docker-layer-cache-
 
+      - uses: actions/cache/restore@v3
+        id: restore-cache
+        with:
+          path: .docker-cargo-cache
+          key: docker-cargo-cache_${{ runner.os }}
+
       - name: Build the app
-        working-directory: frontend/scripts/docker-buildfiles
-        run: docker-compose build --progress=plain
+        run: |
+          mkdir -p .docker-cargo-cache
+          cd frontend/scripts/docker-buildfiles
+          sed -i -e 's|^#CI-CACHE-INJECT-MARKER:|COPY .docker-cargo-cache $cargo_cache|' Dockerfile
+          sed -i -e 's|^#CI-CACHE-RETRIEVE-MARKER:|COPY --from=builder $cargo_cache $cargo_cache|' Dockerfile
+          cat Dockerfile
+          docker-compose build --progress=plain
+
+      - name: Retrieve the cache
+        continue-on-failure: true
+        run: |
+          docker container create --name tmp appflowy/appflowy:latest
+          docker container cp tmp:/cargo-cache .docker-cargo-cache
+
+      - name: Save the cache
+        if: ${{ github.ref == 'refs/heads/docker' }}
+        uses: actions/cache/save@v3
+        with:
+          path: .docker-cargo-cache
+          key: ${{ steps.restore-cache.outputs.cache-primary-key }}
