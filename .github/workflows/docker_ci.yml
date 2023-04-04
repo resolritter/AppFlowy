@@ -18,7 +18,7 @@ jobs:
         uses: docker-practice/actions-setup-docker@fd7ecdac7caf8e2c541a48c9bcc280aae59a8461 # master
 
       - name: Cache Docker layers
-        uses: jpribyl/action-docker-layer-caching@376818fbbe127d8e2d5528666f38a67e588c7449 # main-release
+        uses: jpribyl/action-docker-layer-caching@c632825d12ec837065f49726ea27ddd40bcc7894 # v0.1.1
         continue-on-error: true
         # workaround for https://github.com/satackey/action-docker-layer-caching/issues/169#issuecomment-1217408538
         with:
