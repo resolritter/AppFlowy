@@ -18,22 +18,14 @@ jobs:
       - name: Set up Docker
         uses: docker-practice/actions-setup-docker@fd7ecdac7caf8e2c541a48c9bcc280aae59a8461 # master
 
-      - name: Set Docker's data-root
-        run: |
-          mkdir /docker-data
-          chmod 666 /docker-data
-          mkdir -p /etc/docker
-          echo '{ "data-root": "/docker-data" }' > /etc/docker/daemon.json
-          chmod 666 /etc/docker/daemon.json
-
       # Only cache the Docker volumes on main, not on pull requests, to avoid
       # overriding the cache with artifacts from unmerged code
       - name: Cache Docker's data
         uses: actions/cache@v3
         if: ${{ github.ref == 'refs/heads/docker' }}
         with:
-          path: /docker-data
-          key: docker-data
+          path: /var/lib/docker/volumes
+          key: docker-volumes
 
       # We don't need this step on main because it's redundant with the previous
       # caching step
@@ -41,11 +33,11 @@ jobs:
         uses: actions/cache/restore@v3
         if: ${{ github.ref != 'refs/heads/docker' }}
         with:
-          path: /docker-data
-          key: docker-data
+          path: /var/lib/docker/volumes
+          key: docker-volumes
 
       - name: List cached Docker volumes
-        run: sudo ls /docker-data || true
+        run: sudo ls /var/lib/docker/volumes || true
 
       - name: Build the app
         working-directory: frontend/scripts/docker-buildfiles
