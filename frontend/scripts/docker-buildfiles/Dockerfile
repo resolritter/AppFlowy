@@ -74,7 +74,6 @@ FROM archlinux/archlinux
 
 # Upgrade the system
 RUN pacman -Syyu --noconfirm
-RUN pacman -S --needed --noconfirm sudo
 
 # Install runtime dependencies
 RUN pacman -S --noconfirm xdg-user-dirs gtk3 libkeybinder3 && \
@@ -90,7 +89,6 @@ USER $user
 
 # Set up the AppFlowy app
 WORKDIR /home/$user
-RUN sudo mkdir -p "$cargo_cache"
 #CI-CACHE-RETRIEVE-MARKER: Do not remove this line! It's used for retrieving the cache in CI
 RUN ls "$cargo_cache" || true
 COPY --from=builder /appflowy/frontend/appflowy_flutter/build/linux/x64/release/bundle .
