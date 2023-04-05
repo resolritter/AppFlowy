@@ -39,6 +39,9 @@ jobs:
             Dockerfile
           cat Dockerfile
 
+          # uses the format which `touch -at` wants
+          echo "APP_BUILD_START_TIME=$(date -u '+%Y%m%d%H%M')" >> "$GITHUB_ENV"
+
           docker-compose build --progress=plain \
           | while read line; do \
               if [[ "$line" =~ ^Step[[:space:]] ]]; then \
@@ -53,18 +56,22 @@ jobs:
         if: ${{ github.ref == 'refs/heads/docker' && steps.Build.outcome == 'success' }}
         continue-on-error: true
         run: |
+          # fetch build artifacts from the Docker image
           mkdir .tmp
-          uid=$(id -u)
-          gid=$(id -g)
+          uid="$(id -u)"
+          gid="$(id -g)"
           chown "$uid:$gid" .tmp
           docker run --rm \
             -v "$PWD"/.tmp:/cache:Z \
-             --build-arg "uid=$uid" \
-             --build-arg "gid=$gid" \
-            --entrypoint cp appflowy/appflowy:latest -r /cargo-cache /cache
+            --build-arg "uid=$uid" \
+            --build-arg "gid=$gid" \
+            --entrypoint cp appflowy/appflowy:latest --preserve=mode,timestamps /cargo-cache /cache
           mv .tmp/cargo-cache .docker-cargo-cache
-          find .docker-cargo-cache -type f -mtime +14 -delete
           rm -rf .tmp
+
+          # clean up stale build artifacts
+          touch -at "$APP_BUILD_START_TIME" .app_build_start
+          find .docker-cargo-cache -print -type f -not -anewer .app_build_start -delete
 
       - name: Save build cache
         if: ${{ github.ref == 'refs/heads/docker' && steps.RetrieveBuildCache.outcome == 'success' }}
