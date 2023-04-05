@@ -59,6 +59,17 @@ jobs:
           echo "BUILD_UID=$uid" >> "$GITHUB_ENV"
           echo "BUILD_GID=$gid" >> "$GITHUB_ENV"
 
+      # workaround for https://github.com/actions/cache/issues/342
+      # workaround for https://github.com/actions/cache/issues/171
+      - name: Clear the current cache
+        if: ${{ github.ref == 'refs/heads/docker' && steps.RestoreCache.outputs.cache-hit }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh extension install actions/gh-actions-cache
+          gh actions-cache delete --confirm ${{ steps.RestoreCache.outputs.cache-primary-key }}
+
       - name: Retrieve build cache
         id: RetrieveBuildCache
         if: ${{ github.ref == 'refs/heads/docker' && steps.Build.outcome == 'success' }}
@@ -73,7 +84,7 @@ jobs:
           rm -rf .tmp
 
           # clean up stale build artifacts
-          find .docker-cargo-cache -print -type f -not -newerat "$APP_BUILD_START_TIME" -delete
+          find .docker-cargo-cache -type f -not -newerat "$APP_BUILD_START_TIME" -delete -print
 
       - name: Save cache
         if: ${{ github.ref == 'refs/heads/docker' && steps.RetrieveBuildCache.outcome == 'success' }}
