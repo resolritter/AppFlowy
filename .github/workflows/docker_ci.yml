@@ -66,21 +66,6 @@ jobs:
           # newly-built image
           rm -rf .docker-cargo-cache
 
-      # workaround for https://github.com/actions/cache/issues/342
-      # workaround for https://github.com/actions/cache/issues/171
-      - name: Allow for overwriting the current cache
-        if: ${{
-          github.ref == 'refs/heads/docker' &&
-          steps.Build.outcome == 'success' &&
-          steps.RestoreCache.outputs.cache-hit
-        }}
-        continue-on-error: true
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh extension install actions/gh-actions-cache
-          gh actions-cache delete --confirm ${{ steps.RestoreCache.outputs.cache-primary-key }}
-
       - name: Retrieve build cache
         id: RetrieveBuildCache
         if: ${{ github.ref == 'refs/heads/docker' && steps.Build.outcome == 'success' }}
@@ -97,8 +82,28 @@ jobs:
           # clean up stale build artifacts
           find .docker-cargo-cache -type f -not -newerat "$APP_BUILD_START_TIME" -delete -print
 
-      - name: Save cache
-        if: ${{ github.ref == 'refs/heads/docker' && steps.RetrieveBuildCache.outcome == 'success' }}
+      # workaround for https://github.com/actions/cache/issues/342
+      # workaround for https://github.com/actions/cache/issues/171
+      - name: Allow for overwriting the current cache
+        if: ${{
+          github.ref == 'refs/heads/docker' &&
+          steps.Build.outcome == 'success' &&
+          steps.RetrieveBuildCache.outcome == 'success' &&
+          steps.RestoreCache.outputs.cache-hit
+        }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh extension install actions/gh-actions-cache
+          gh actions-cache delete --confirm ${{ steps.RestoreCache.outputs.cache-primary-key }}
+
+      - name: Update the cache
+        if: ${{
+          github.ref == 'refs/heads/docker' &&
+          steps.Build.outcome == 'success' &&
+          steps.RetrieveBuildCache.outcome == 'success'
+        }}
         uses: actions/cache/save@v3
         with:
           path: .docker-cargo-cache
