@@ -35,17 +35,21 @@ jobs:
           mkdir -p .docker-cargo-cache
 
           cd frontend/scripts/docker-buildfiles
+
           sed -i \
             -e 's|^#CI-CACHE-INJECT-MARKER:.*|COPY .docker-cargo-cache /cargo-cache|' \
             -e 's|^#CI-CACHE-RETRIEVE-MARKER:.*|COPY --from=builder /cargo-cache /cargo-cache|' \
             Dockerfile
           cat Dockerfile
 
+          uid="$(id -u)"
+          gid="$(id -g)"
+          echo "BUILD_UID=$uid" >> "$GITHUB_ENV"
+          echo "BUILD_GID=$gid" >> "$GITHUB_ENV"
+
           # uses the format which `find -newerat $date` wants
           echo "APP_BUILD_START_TIME=$(date -u '+%Y-%m-%d %H:%M:%S')" >> "$GITHUB_ENV"
 
-          uid="$(id -u)"
-          gid="$(id -g)"
           docker-compose build \
             --build-arg "uid=$uid" \
             --build-arg "gid=$gid" \
@@ -57,9 +61,6 @@ jobs:
                 echo "$line"; \
               fi; \
             done \
-
-          echo "BUILD_UID=$uid" >> "$GITHUB_ENV"
-          echo "BUILD_GID=$gid" >> "$GITHUB_ENV"
 
           # clear the current cache to free up space because it has already been
           # used in the build and a new one can be extracted from the
@@ -80,8 +81,10 @@ jobs:
           rm -rf .tmp
 
           # clean up stale build artifacts
+          # artifacts are deemed stale if they were not accessed in the last build
           find .docker-cargo-cache -type f -not -newerat "$APP_BUILD_START_TIME" -delete -print
 
+      # delete the cache so that it can be updated in the following step
       # workaround for https://github.com/actions/cache/issues/342
       # workaround for https://github.com/actions/cache/issues/171
       - name: Allow for overwriting the current cache
