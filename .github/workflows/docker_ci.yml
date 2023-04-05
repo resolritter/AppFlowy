@@ -58,7 +58,7 @@ jobs:
           gid=$(id -g)
           chown "$uid:$gid" .tmp
           docker run --rm \
-            -v "$PWD"/.tmp:/cache:z \
+            -v "$PWD"/.tmp:/cache:Z \
              --build-arg "uid=$uid" \
              --build-arg "gid=$gid" \
             --entrypoint cp appflowy/appflowy:latest -r /cargo-cache /cache
