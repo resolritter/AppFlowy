@@ -10,7 +10,7 @@ on:
 jobs:
   build-frontend-app:
     concurrency: 
-      group: ${{ github.ref }}
+      group: docker_ci-${{ github.event.pull_request.number || github.ref }}
       cancel-in-progress: true
     runs-on: ubuntu-latest
     steps:
