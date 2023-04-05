@@ -68,7 +68,7 @@ jobs:
           chown "$BUILD_UID:$BUILD_GID" .tmp
           docker run --rm \
             -v "$PWD"/.tmp:/cache \
-            --entrypoint cp appflowy/appflowy:latest --preserve=mode,timestamps /cargo-cache /cache
+            --entrypoint cp appflowy/appflowy:latest -r --preserve=mode,timestamps /cargo-cache /cache
           mv .tmp/cargo-cache .docker-cargo-cache
           rm -rf .tmp
 
