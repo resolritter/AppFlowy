@@ -54,8 +54,13 @@ jobs:
         continue-on-error: true
         run: |
           mkdir .tmp
+          uid=$(id -u)
+          gid=$(id -g)
+          chown "$uid:$gid" .tmp
           docker run --rm \
-            -v "$PWD"/.tmp:/cache:Z \
+            -v "$PWD"/.tmp:/cache:z \
+             --build-arg "uid=$uid" \
+             --build-arg "gid=$gid" \
             --entrypoint cp appflowy/appflowy:latest -r /cargo-cache /cache
           mv .tmp/cargo-cache .docker-cargo-cache
           find .docker-cargo-cache -type f -mtime +14 -delete
