@@ -14,7 +14,7 @@ jobs:
       cancel-in-progress: true
     runs-on: ubuntu-latest
     permissions:
-      actions: write # necessary to clear the cache
+      actions: write # necessary to overwrite the cache
     steps:
       - name: Checkout source code
         uses: actions/checkout@v3
@@ -61,10 +61,19 @@ jobs:
           echo "BUILD_UID=$uid" >> "$GITHUB_ENV"
           echo "BUILD_GID=$gid" >> "$GITHUB_ENV"
 
+          # clear the current cache to free up space because it has already been
+          # used in the build and a new one can be extracted from the
+          # newly-built image
+          rm -rf .docker-cargo-cache
+
       # workaround for https://github.com/actions/cache/issues/342
       # workaround for https://github.com/actions/cache/issues/171
-      - name: Clear the current cache
-        if: ${{ github.ref == 'refs/heads/docker' && steps.RestoreCache.outputs.cache-hit }}
+      - name: Allow for overwriting the current cache
+        if: ${{
+          github.ref == 'refs/heads/docker' &&
+          steps.Build.outcome == 'success' &&
+          steps.RestoreCache.outputs.cache-hit
+        }}
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
