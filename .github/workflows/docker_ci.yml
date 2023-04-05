@@ -45,7 +45,7 @@ jobs:
           docker run -v .tmp:/cache --rm --entrypoint cp appflowy/appflowy:latest -r /cargo-cache /cache
           mv .tmp/cargo-cache .docker-cargo-cache
           find .docker-cargo-cache -type f -mtime +14 -delete
-          rm -rf "$PWD"/.tmp
+          rm -rf .tmp
 
       - name: Save the cache
         if: ${{ github.ref == 'refs/heads/docker' }}
