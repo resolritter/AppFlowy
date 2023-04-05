@@ -33,7 +33,7 @@ jobs:
           mkdir -p .docker-cargo-cache
           cd frontend/scripts/docker-buildfiles
           sed -i -e 's|^#CI-CACHE-INJECT-MARKER:.*|COPY .docker-cargo-cache $cargo_cache|' Dockerfile
-          sed -i -e 's|^#CI-CACHE-RETRIEVE-MARKER:.*|COPY --from=builder $cargo_cache $cargo_cache|' Dockerfile
+          sed -i -e 's|^#CI-CACHE-RETRIEVE-MARKER:.*|COPY --from=builder /cargo-cache /cargo-cache|' Dockerfile
           cat Dockerfile
           docker-compose build --progress=plain
 
@@ -43,6 +43,7 @@ jobs:
         run: |
           docker run -v "$PWD"/.tmp:/cache --rm --entrypoint cp appflowy/appflowy:latest -r /cargo-cache /cache
           mv "$PWD"/.tmp/cargo-cache .docker-cargo-cache
+          find .docker-cargo-cache -type f -mtime +14 -delete
           rm -rf "$PWD"/.tmp
 
       - name: Save the cache
