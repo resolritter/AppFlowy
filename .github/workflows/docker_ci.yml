@@ -20,7 +20,7 @@ jobs:
       - name: Set up Docker
         uses: docker-practice/actions-setup-docker@fd7ecdac7caf8e2c541a48c9bcc280aae59a8461 # master
 
-      - name: Restore the cache
+      - name: Restore build cache
         uses: actions/cache/restore@v3
         id: RestoreCache
         with:
@@ -31,13 +31,22 @@ jobs:
         id: Build
         run: |
           mkdir -p .docker-cargo-cache
+
           cd frontend/scripts/docker-buildfiles
           sed -i \
             -e 's|^#CI-CACHE-INJECT-MARKER:.*|COPY .docker-cargo-cache /cargo-cache|' \
             -e 's|^#CI-CACHE-RETRIEVE-MARKER:.*|COPY --from=builder /cargo-cache /cargo-cache|' \
             Dockerfile
           cat Dockerfile
-          docker-compose build --progress=plain
+
+          docker-compose build --progress=plain \
+          | while read line; do \
+              if [[ "$line" =~ ^Step[[:space:]] ]]; then \
+                echo "$(date -u '+%H:%m:%S') | $line"; \
+              else \
+                echo "$line"; \
+              fi; \
+            done \
 
       - name: Retrieve build cache
         id: RetrieveBuildCache
