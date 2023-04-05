@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       # necessary to clear the cache
-      actions: ${{ github.ref == 'refs/heads/docker' && 'write' || 'none' }}
+      actions: "${{ github.ref == 'refs/heads/docker' && 'write' || 'none' }}"
     steps:
       - name: Checkout source code
         uses: actions/checkout@v3
