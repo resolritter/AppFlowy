@@ -20,7 +20,7 @@ jobs:
       - name: Set up Docker
         uses: docker-practice/actions-setup-docker@fd7ecdac7caf8e2c541a48c9bcc280aae59a8461 # master
 
-      - name: Restore build cache
+      - name: Restore cache
         uses: actions/cache/restore@v3
         id: RestoreCache
         with:
@@ -42,7 +42,12 @@ jobs:
           # uses the format which `find -newerat $date` wants
           echo "APP_BUILD_START_TIME=$(date -u '+%Y-%m-%d %H:%M:%S')" >> "$GITHUB_ENV"
 
-          docker-compose build --progress=plain \
+          uid="$(id -u)"
+          gid="$(id -g)"
+          docker-compose build \
+            --build-arg "uid=$uid" \
+            --build-arg "gid=$gid" \
+            --progress=plain \
           | while read line; do \
               if [[ "$line" =~ ^Step[[:space:]] ]]; then \
                 echo "$(date -u '+%H:%m:%S') | $line"; \
@@ -51,20 +56,18 @@ jobs:
               fi; \
             done \
 
+          echo "BUILD_UID=$uid" >> "$GITHUB_ENV"
+          echo "BUILD_GID=$gid" >> "$GITHUB_ENV"
+
       - name: Retrieve build cache
         id: RetrieveBuildCache
         if: ${{ github.ref == 'refs/heads/docker' && steps.Build.outcome == 'success' }}
-        continue-on-error: true
         run: |
           # fetch build artifacts from the Docker image
           mkdir .tmp
-          uid="$(id -u)"
-          gid="$(id -g)"
-          chown "$uid:$gid" .tmp
+          chown "$BUILD_UID:$BUILD_GID" .tmp
           docker run --rm \
-            -v "$PWD"/.tmp:/cache:Z \
-            --build-arg "uid=$uid" \
-            --build-arg "gid=$gid" \
+            -v "$PWD"/.tmp:/cache \
             --entrypoint cp appflowy/appflowy:latest --preserve=mode,timestamps /cargo-cache /cache
           mv .tmp/cargo-cache .docker-cargo-cache
           rm -rf .tmp
@@ -72,7 +75,7 @@ jobs:
           # clean up stale build artifacts
           find .docker-cargo-cache -print -type f -not -newerat "$APP_BUILD_START_TIME" -delete
 
-      - name: Save build cache
+      - name: Save cache
         if: ${{ github.ref == 'refs/heads/docker' && steps.RetrieveBuildCache.outcome == 'success' }}
         uses: actions/cache/save@v3
         with:
