@@ -39,8 +39,8 @@ jobs:
             Dockerfile
           cat Dockerfile
 
-          # uses the format which `touch -at` wants
-          echo "APP_BUILD_START_TIME=$(date -u '+%Y%m%d%H%M')" >> "$GITHUB_ENV"
+          # uses the format which `find -newerat $date` wants
+          echo "APP_BUILD_START_TIME=$(date -u '+%Y-%m-%d %H:%M:%S')" >> "$GITHUB_ENV"
 
           docker-compose build --progress=plain \
           | while read line; do \
@@ -70,8 +70,7 @@ jobs:
           rm -rf .tmp
 
           # clean up stale build artifacts
-          touch -at "$APP_BUILD_START_TIME" .app_build_start
-          find .docker-cargo-cache -print -type f -not -anewer .app_build_start -delete
+          find .docker-cargo-cache -print -type f -not -newerat "$APP_BUILD_START_TIME" -delete
 
       - name: Save build cache
         if: ${{ github.ref == 'refs/heads/docker' && steps.RetrieveBuildCache.outcome == 'success' }}
