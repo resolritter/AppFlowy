@@ -41,8 +41,9 @@ jobs:
         if: ${{ steps.build.outcome == 'success' }}
         continue-on-error: true
         run: |
-          docker run -v "$PWD"/.tmp:/cache --rm --entrypoint cp appflowy/appflowy:latest -r /cargo-cache /cache
-          mv "$PWD"/.tmp/cargo-cache .docker-cargo-cache
+          mkdir .tmp
+          docker run -v .tmp:/cache --rm --entrypoint cp appflowy/appflowy:latest -r /cargo-cache /cache
+          mv .tmp/cargo-cache .docker-cargo-cache
           find .docker-cargo-cache -type f -mtime +14 -delete
           rm -rf "$PWD"/.tmp
 
