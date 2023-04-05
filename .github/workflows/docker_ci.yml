@@ -22,34 +22,39 @@ jobs:
 
       - name: Restore the cache
         uses: actions/cache/restore@v3
-        id: restore-cache
+        id: RestoreCache
         with:
           path: .docker-cargo-cache
           key: docker-cargo-cache_${{ runner.os }}
 
       - name: Build the app
-        id: build
+        id: Build
         run: |
           mkdir -p .docker-cargo-cache
           cd frontend/scripts/docker-buildfiles
-          sed -i -e 's|^#CI-CACHE-INJECT-MARKER:.*|COPY .docker-cargo-cache $cargo_cache|' Dockerfile
-          sed -i -e 's|^#CI-CACHE-RETRIEVE-MARKER:.*|COPY --from=builder /cargo-cache /cargo-cache|' Dockerfile
+          sed -i \
+            -e 's|^#CI-CACHE-INJECT-MARKER:.*|COPY .docker-cargo-cache /cargo-cache|' \
+            -e 's|^#CI-CACHE-RETRIEVE-MARKER:.*|COPY --from=builder /cargo-cache /cargo-cache|' \
+            Dockerfile
           cat Dockerfile
           docker-compose build --progress=plain
 
-      - name: Try to retrieve the cache
-        if: ${{ steps.build.outcome == 'success' }}
+      - name: Retrieve build cache
+        id: RetrieveBuildCache
+        if: ${{ github.ref == 'refs/heads/docker' && steps.Build.outcome == 'success' }}
         continue-on-error: true
         run: |
           mkdir .tmp
-          docker run -v "$PWD/".tmp:/cache --rm --entrypoint cp appflowy/appflowy:latest -r /cargo-cache /cache
+          docker run --rm \
+            -v "$PWD"/.tmp:/cache \
+            --entrypoint cp appflowy/appflowy:latest -r /cargo-cache /cache
           mv .tmp/cargo-cache .docker-cargo-cache
           find .docker-cargo-cache -type f -mtime +14 -delete
           rm -rf .tmp
 
-      - name: Save the cache
-        if: ${{ github.ref == 'refs/heads/docker' }}
+      - name: Save build cache
+        if: ${{ github.ref == 'refs/heads/docker' && steps.RetrieveBuildCache.outcome == 'success' }}
         uses: actions/cache/save@v3
         with:
           path: .docker-cargo-cache
-          key: ${{ steps.restore-cache.outputs.cache-primary-key }}
+          key: ${{ steps.RestoreCache.outputs.cache-primary-key }}
