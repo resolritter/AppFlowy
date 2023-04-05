@@ -85,12 +85,11 @@ jobs:
       # workaround for https://github.com/actions/cache/issues/342
       # workaround for https://github.com/actions/cache/issues/171
       - name: Allow for overwriting the current cache
-        if: ${{
-          github.ref == 'refs/heads/docker' &&
-          steps.Build.outcome == 'success' &&
-          steps.RetrieveBuildCache.outcome == 'success' &&
-          steps.RestoreCache.outputs.cache-hit
-        }}
+        if: ${{ github.ref == 'refs/heads/docker' &&
+                steps.Build.outcome == 'success' &&
+                steps.RetrieveBuildCache.outcome == 'success' &&
+                steps.RestoreCache.outputs.cache-hit
+             }}
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
@@ -99,11 +98,10 @@ jobs:
           gh actions-cache delete --confirm ${{ steps.RestoreCache.outputs.cache-primary-key }}
 
       - name: Update the cache
-        if: ${{
-          github.ref == 'refs/heads/docker' &&
-          steps.Build.outcome == 'success' &&
-          steps.RetrieveBuildCache.outcome == 'success'
-        }}
+        if: ${{ github.ref == 'refs/heads/docker' &&
+                steps.Build.outcome == 'success' &&
+                steps.RetrieveBuildCache.outcome == 'success'
+             }}
         uses: actions/cache/save@v3
         with:
           path: .docker-cargo-cache
