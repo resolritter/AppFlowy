@@ -47,7 +47,7 @@ RUN dart pub global activate protoc_plugin
 
 # Set up Cargo cache
 ARG cargo_cache=/cargo-cache
-#CI-CACHE-INJECT-MARKER: Do not remove this line! It's used for injecting the cache in CI
+#CI-CACHE-INJECT-MARKER: Do not remove this line! It's used for injecting the cache on CI
 RUN sudo mkdir -p "$cargo_cache/target" && \
     sudo chown -R $user: "$cargo_cache"
 ENV CARGO_TARGET_DIR="$cargo_cache/target"
@@ -89,7 +89,7 @@ USER $user
 
 # Set up the AppFlowy app
 WORKDIR /home/$user
-#CI-CACHE-RETRIEVE-MARKER: Do not remove this line! It's used for retrieving the cache in CI
+#CI-CACHE-RETRIEVE-MARKER: Do not remove this line! It's used for retrieving the cache on CI
 COPY --from=builder /appflowy/frontend/appflowy_flutter/build/linux/x64/release/bundle .
 RUN xdg-user-dirs-update
 
