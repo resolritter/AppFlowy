@@ -48,8 +48,9 @@ RUN dart pub global activate protoc_plugin
 # Set up Cargo cache
 ARG cargo_target_parent=/cargo-tmp
 #CI-CACHE-INJECT-MARKER: Do not remove this line! It's used for injecting the cache on CI
-ENV CARGO_TARGET_DIR="$cargo_target_parent/.cargo-target"
-RUN sudo mkdir -p "$CARGO_TARGET_DIR" && \
+ENV CARGO_TARGET_DIR="$cargo_target_parent/target"
+ENV CARGO_HOME="cargo_target_parent/home"
+RUN sudo mkdir -p "$CARGO_TARGET_DIR" "$CARGO_HOME" && \
     sudo chown -R $user: "$cargo_target_parent"
 
 # Set up build dependencies for AppFlowy

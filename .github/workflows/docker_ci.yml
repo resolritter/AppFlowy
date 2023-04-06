@@ -25,20 +25,20 @@ jobs:
         uses: actions/cache/restore@v3
         id: RestoreCache
         with:
-          path: .cargo-target
+          path: .cargo-cache
           key: docker-cargo-cache_${{ runner.os }}
 
       - name: Build the app
         id: Build
         run: |
           # set up the cache
-          mkdir -p .cargo-target
+          mkdir -p .cargo-cache
 
           cd frontend/scripts/docker-buildfiles
 
           sed -i \
             -e 's|^#CI-CACHE-INJECT-MARKER:.*|ARG cargo_target_parent=/appflowy|' \
-            -e 's|^#CI-CACHE-RETRIEVE-MARKER:.*|COPY --from=builder /appflowy/.cargo-target /cargo-cache|' \
+            -e 's|^#CI-CACHE-RETRIEVE-MARKER:.*|COPY --from=builder /appflowy/.cargo-cache /cargo-cache|' \
             Dockerfile
           cat Dockerfile
 
@@ -67,7 +67,7 @@ jobs:
           # clear the current cache to free up space because it has already been
           # used in the build and a new one can be extracted from the
           # newly-built image
-          rm -rf .cargo-target
+          rm -rf .cargo-cache
 
       - name: Retrieve build cache
         id: RetrieveBuildCache
@@ -79,12 +79,12 @@ jobs:
           docker run --rm \
             -v "$PWD"/.tmp:/cache \
             --entrypoint cp appflowy/appflowy:latest -r --preserve=mode,timestamps /cargo-cache /cache
-          mv .tmp/cargo-cache .cargo-target
+          mv .tmp/cargo-cache .cargo-cache
           rm -rf .tmp
 
           # clean up stale build artifacts
           # artifacts are deemed stale if they were not accessed in the last build
-          find .cargo-target -type f -not -newerat "$APP_BUILD_START_TIME" -delete -print
+          find .cargo-cache -type f -not -newerat "$APP_BUILD_START_TIME" -delete -print
 
       # delete the cache so that it can be updated in the following step
       # workaround for https://github.com/actions/cache/issues/342
@@ -111,5 +111,5 @@ jobs:
              }}
         uses: actions/cache/save@v3
         with:
-          path: .cargo-target
+          path: .cargo-cache
           key: ${{ steps.RestoreCache.outputs.cache-primary-key }}
