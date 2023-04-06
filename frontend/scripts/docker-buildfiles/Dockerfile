@@ -61,7 +61,9 @@ RUN yay -S --noconfirm git-tools-git
 COPY . /appflowy
 RUN sudo chown -R $user: /appflowy
 WORKDIR /appflowy
-RUN git restore-mtime && \
+RUN git status && \
+    ls "$CARGO_TARGET_DIR" && \
+    git restore-mtime && \
     cd frontend && \
     source ~/.cargo/env && \
     cargo make appflowy-flutter-deps-tools && \
