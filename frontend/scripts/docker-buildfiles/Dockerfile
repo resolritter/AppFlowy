@@ -45,7 +45,10 @@ RUN flutter config --enable-linux-desktop
 RUN flutter doctor
 RUN dart pub global activate protoc_plugin
 
-# Set up Cargo cache
+# Set up AppFlowy code
+COPY . /appflowy
+
+# Set up the the Cargo cache
 ARG cargo_target_parent=/cargo-tmp
 #CI-CACHE-INJECT-MARKER: Do not remove this line! It's used for injecting the cache on CI
 ENV CARGO_TARGET_DIR="$cargo_target_parent/target"
@@ -59,7 +62,6 @@ RUN source ~/.cargo/env && cargo install --force cargo-make duckscript_cli
 
 # Build AppFlowy
 RUN yay -S --noconfirm git-tools-git
-COPY . /appflowy
 RUN sudo chown -R $user: /appflowy
 WORKDIR /appflowy
 RUN git status && \
