@@ -2,10 +2,10 @@ name: Docker-CI
 
 on:
   push:
-    branches: [docker]
+    branches: [docker2]
   pull_request:
     types: [opened, edited, synchronize, reopened, ready_for_review]
-    branches: [docker]
+    branches: [docker2]
 
 jobs:
   build-frontend-app:
@@ -37,7 +37,7 @@ jobs:
           # it's necesssary to send the .git folder for git-restore-mtime
           sed -i -e 's|^[[:space:]]*\.git[[:space:]/]*||' .gitignore
 
-          cd frontend/scripts/docker-buildfiles
+          cd frontend/scripts/docker2-buildfiles
 
           sed -i \
             -e 's|^#CI-CACHE-INJECT-MARKER:.*|ARG cargo_target_parent=/appflowy|' \
@@ -74,7 +74,7 @@ jobs:
 
       - name: Retrieve build cache
         id: RetrieveBuildCache
-        if: ${{ github.ref == 'refs/heads/docker' && steps.Build.outcome == 'success' }}
+        if: ${{ github.ref == 'refs/heads/docker2' && steps.Build.outcome == 'success' }}
         run: |
           # fetch build artifacts from the Docker image
           mkdir .tmp
@@ -94,7 +94,7 @@ jobs:
       # workaround for https://github.com/actions/cache/issues/171
       - name: Allow for overwriting the current cache
         if: ${{
-                github.ref == 'refs/heads/docker' &&
+                github.ref == 'refs/heads/docker2' &&
                 steps.Build.outcome == 'success' &&
                 steps.RetrieveBuildCache.outcome == 'success' &&
                 steps.RestoreCache.outputs.cache-hit
@@ -108,7 +108,7 @@ jobs:
 
       - name: Update the cache
         if: ${{
-                github.ref == 'refs/heads/docker' &&
+                github.ref == 'refs/heads/docker2' &&
                 steps.Build.outcome == 'success' &&
                 steps.RetrieveBuildCache.outcome == 'success'
              }}
