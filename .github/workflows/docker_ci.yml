@@ -21,9 +21,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up Docker
-        uses: docker-practice/actions-setup-docker@fd7ecdac7caf8e2c541a48c9bcc280aae59a8461 # master
-
       - name: Restore cache
         uses: actions/cache/restore@v3
         id: RestoreCache
@@ -53,7 +50,9 @@ jobs:
           # uses the format which `find -newerat $date` wants
           echo "APP_BUILD_START_TIME=$(date -u '+%Y-%m-%d %H:%M:%S')" >> "$GITHUB_ENV"
 
+          # --no-cache is necessary due to low disk space within github runners
           docker-compose build \
+            --no-cache \
             --build-arg "uid=$uid" \
             --build-arg "gid=$gid" \
             --progress=plain \
