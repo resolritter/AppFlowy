@@ -34,6 +34,9 @@ jobs:
           # set up the cache
           mkdir -p .cargo-cache
 
+          # it's necesssary to send the .git folder for git-restore-mtime
+          sed -i -e 's|^[[:space:]]*\.git[[:space:]/]*||' .gitignore
+
           cd frontend/scripts/docker-buildfiles
 
           sed -i \
