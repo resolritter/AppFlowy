@@ -57,7 +57,7 @@ RUN sudo pacman -S --noconfirm git libkeybinder3 sqlite
 RUN source ~/.cargo/env && cargo install --force cargo-make duckscript_cli
 
 # Build AppFlowy
-RUN sudo pacman -S --noconfirm git-tools-git
+RUN yay -S --noconfirm git-tools-git
 COPY . /appflowy
 RUN sudo chown -R $user: /appflowy
 WORKDIR /appflowy

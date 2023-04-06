@@ -41,7 +41,7 @@ jobs:
 
           sed -i \
             -e 's|^#CI-CACHE-INJECT-MARKER:.*|ARG cargo_target_parent=/appflowy|' \
-            -e 's|^#CI-CACHE-RETRIEVE-MARKER:.*|COPY --from=builder /appflowy/target /cargo-cache|' \
+            -e 's|^#CI-CACHE-RETRIEVE-MARKER:.*|COPY --from=builder /appflowy/.cargo-target /cargo-cache|' \
             Dockerfile
           cat Dockerfile
 
@@ -64,6 +64,11 @@ jobs:
                 echo "$line"; \
               fi; \
             done \
+
+          # clear the current cache to free up space because it has already been
+          # used in the build and a new one can be extracted from the
+          # newly-built image
+          rm -rf .cargo-target
 
       - name: Retrieve build cache
         id: RetrieveBuildCache
